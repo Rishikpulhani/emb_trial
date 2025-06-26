@@ -11,4 +11,3 @@ pub extern "C" fn _start() -> !{
     // here this is a rust function which is accessed from outside but this happens at the c abi 
     loop {}
 }
-// this is the entry point of the program
