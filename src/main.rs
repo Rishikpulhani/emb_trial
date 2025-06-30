@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 use core::panic::PanicInfo;
+
+//use crate::vga_buffer;
 mod vga_buffer;
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -19,6 +21,10 @@ pub extern "C" fn _start() -> ! {
     //         *vga_buffer.offset(i as isize * 2 + 1) = 0xb;
     //     }
     // }
-    vga_buffer::print_something();
+    //vga_buffer::print_something();
+    use core::fmt::Write;
+    vga_buffer::WRITER.lock().write_byte(b'H');
+    vga_buffer::WRITER.lock().write_string("ello ");
+    write!(vga_buffer::WRITER.lock(), "The numbers are {} and {}", 42, 1.0 / 3.0).unwrap();
     loop {}
 }

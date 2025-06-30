@@ -1,6 +1,8 @@
 use core::fmt::{Error, Write};
 use core::str::{self};
 use volatile::Volatile;
+use lazy_static::lazy_static;
+use spin::Mutex;
 
 #[allow(dead_code)]
 //#[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -53,6 +55,7 @@ struct Buffer {
 }
 
 // an entity to write to the vga buffer, we use this to store info about the place where we want to write a character
+
 pub struct Writer {
     colomn_position: usize,
     color_code: ColorCode,       // tells both the front and background color
@@ -109,16 +112,16 @@ impl Writer {
         }
     }
 }
-pub fn print_something() {
-    let mut writer = Writer {
-        colomn_position: 0,
-        color_code: ColorCode::new(Color::Yellow, Color::Black),
-        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
-    };
-    writer.write_byte(b'H');
-    writer.write_string("ello ");
-    write!(writer, "The numbers are {} and {}", 42, 1.0 / 3.0).unwrap();
-}
+// pub fn print_something() {
+//     let mut writer = Writer {
+//         colomn_position: 0,
+//         color_code: ColorCode::new(Color::Yellow, Color::Black),
+//         buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
+//     };
+//     writer.write_byte(b'H');
+//     writer.write_string("ello ");
+//     write!(writer, "The numbers are {} and {}", 42, 1.0 / 3.0).unwrap();
+// }
 
 impl Write for Writer {
     fn write_str(&mut self, s: &str) -> Result<(), Error> {
@@ -126,3 +129,11 @@ impl Write for Writer {
         Ok(())
     }
 }
+
+lazy_static!(
+    pub static ref WRITER: Mutex<Writer> = Mutex::new(Writer { //If it were just static, it would imply a full owned value — but static ref gives you a shared reference (&'static T).
+        colomn_position: 0,
+        color_code: ColorCode::new(Color::Yellow, Color::Black),
+        buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
+    });
+);
