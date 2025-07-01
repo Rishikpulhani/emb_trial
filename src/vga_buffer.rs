@@ -1,4 +1,4 @@
-use core::fmt::{Error, Write};
+use core::fmt::{self, Error, Write};
 use core::str::{self};
 use volatile::Volatile;
 use lazy_static::lazy_static;
@@ -137,3 +137,18 @@ lazy_static!(
         buffer: unsafe { &mut *(0xb8000 as *mut Buffer) },
     });
 );
+
+// adding support for println macro
+#[macro_export]
+macro_rules! println {
+    () => (print!("\n"));
+    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+}
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => ($crate::vga_buffer::_print(format_args!($($arg)*)));
+}
+#[doc(hidden)]
+pub fn _print(args: fmt::Arguments){
+    WRITER.lock().write_fmt(args).unwrap();
+}

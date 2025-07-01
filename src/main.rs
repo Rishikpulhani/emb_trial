@@ -6,6 +6,7 @@ use core::panic::PanicInfo;
 mod vga_buffer;
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
+    println!("{}",_info);
     loop {}
 }
 // no need to mark the panic function with no_mangle as it is not refered by its name while linking instead it is marked as the panic handler to identify it unique;y
@@ -22,9 +23,11 @@ pub extern "C" fn _start() -> ! {
     //     }
     // }
     //vga_buffer::print_something();
-    use core::fmt::Write;
-    vga_buffer::WRITER.lock().write_byte(b'H');
-    vga_buffer::WRITER.lock().write_string("ello ");
-    write!(vga_buffer::WRITER.lock(), "The numbers are {} and {}", 42, 1.0 / 3.0).unwrap();
+    // use core::fmt::Write;
+    // vga_buffer::WRITER.lock().write_byte(b'H');
+    // vga_buffer::WRITER.lock().write_string("ello ");
+    // write!(vga_buffer::WRITER.lock(), "The numbers are {} and {}", 42, 1.0 / 3.0).unwrap();
+    println!("Hello World{}", "!");// no import as already in the root namespace as macro export
+    panic!("Some panic message");
     loop {}
 }
