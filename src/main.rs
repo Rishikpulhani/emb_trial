@@ -1,5 +1,8 @@
 #![no_std]
 #![no_main]
+#![feature(custom_test_frameworks)]
+#![test_runner(crate::test_runner)] // here test_runner was the func name which will be run when we do cargo test
+#![reexport_test_harness_main = "test_main"]
 use core::panic::PanicInfo;
 
 //use crate::vga_buffer;
@@ -28,6 +31,27 @@ pub extern "C" fn _start() -> ! {
     // vga_buffer::WRITER.lock().write_string("ello ");
     // write!(vga_buffer::WRITER.lock(), "The numbers are {} and {}", 42, 1.0 / 3.0).unwrap();
     println!("Hello World{}", "!");// no import as already in the root namespace as macro export
-    panic!("Some panic message");
+    //panic!("Some panic message");
+    // for i in 1..100{
+    //     println!("{i}");
+    // }
+    #[cfg(test)]
+    test_main();
     loop {}
+}
+
+#[cfg(test)]
+pub fn test_runner(tests : &[&dyn Fn()]) {
+    //tests - It is basically a list of references to types that can be called like a function.
+    println!("Running {} tests", tests.len());
+    for test in tests {
+        test();
+    }
+}
+#[test_case]
+fn trivial_assertion(){
+    print!("trivial assertion... ");
+    assert_eq!(1, 1);
+    //assert_eq!(1, 2);
+    println!("[ok]");
 }
