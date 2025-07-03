@@ -5,6 +5,8 @@
 #![reexport_test_harness_main = "test_main"]
 use core::panic::PanicInfo;
 
+
+
 //use crate::vga_buffer;
 mod vga_buffer;
 #[panic_handler]
@@ -47,6 +49,7 @@ pub fn test_runner(tests : &[&dyn Fn()]) {
     for test in tests {
         test();
     }
+    exit_qemu(QemuExitCode::Success);
 }
 #[test_case]
 fn trivial_assertion(){
@@ -54,4 +57,15 @@ fn trivial_assertion(){
     assert_eq!(1, 1);
     //assert_eq!(1, 2);
     println!("[ok]");
+}
+
+#[repr(u32)]
+enum QemuExitCode { // each one is 8 bit as in hex
+    Success = 0x10, //16 + 0
+    Failed = 0x11,  //16 + 1
+}
+fn exit_qemu (exit_code : QemuExitCode){
+    use x86_64::instructions::port::Port;
+    let mut port = Port::new(0xf4); // creating a port is safe but accessing it is not 
+    unsafe {port.write(exit_code as u32);} // exit_code should implement the portwrite trait which is done only by u8,u16,u32
 }
