@@ -5,13 +5,21 @@
 #![reexport_test_harness_main = "test_main"]
 use core::panic::PanicInfo;
 
-
-
 //use crate::vga_buffer;
+mod serial;
 mod vga_buffer;
+#[cfg(not(test))]
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
-    println!("{}",_info);
+    println!("{}", _info);
+    loop {}
+}
+#[cfg(test)]
+#[panic_handler]
+fn panic(_info: &PanicInfo) -> ! {
+    serial_println!("[failed]\n"); // as panic only happens when a test fails 
+    serial_println!("Error: {}\n", _info);
+    exit_qemu(QemuExitCode::Failed); // since we are seeing the error in the console we dont need to the qemu to be running so close it 
     loop {}
 }
 // no need to mark the panic function with no_mangle as it is not refered by its name while linking instead it is marked as the panic handler to identify it unique;y
@@ -32,40 +40,44 @@ pub extern "C" fn _start() -> ! {
     // vga_buffer::WRITER.lock().write_byte(b'H');
     // vga_buffer::WRITER.lock().write_string("ello ");
     // write!(vga_buffer::WRITER.lock(), "The numbers are {} and {}", 42, 1.0 / 3.0).unwrap();
-    println!("Hello World{}", "!");// no import as already in the root namespace as macro export
-    //panic!("Some panic message");
-    // for i in 1..100{
-    //     println!("{i}");
-    // }
+    println!("Hello World{}", "!"); // no import as already in the root namespace as macro export
+                                    //panic!("Some panic message");
+                                    // for i in 1..100{
+                                    //     println!("{i}");
+                                    // }
     #[cfg(test)]
     test_main();
     loop {}
 }
 
 #[cfg(test)]
-pub fn test_runner(tests : &[&dyn Fn()]) {
+pub fn test_runner(tests: &[&dyn Fn()]) {
     //tests - It is basically a list of references to types that can be called like a function.
-    println!("Running {} tests", tests.len());
+    serial_println!("Running {} tests", tests.len());
     for test in tests {
         test();
+
     }
     exit_qemu(QemuExitCode::Success);
 }
 #[test_case]
-fn trivial_assertion(){
-    print!("trivial assertion... ");
+fn trivial_assertion() {
+    serial_print!("trivial assertion... ");
     assert_eq!(1, 1);
-    //assert_eq!(1, 2);
-    println!("[ok]");
+    //assert_eq!(1, 2); // on fqailing this calls the panic handler and so qemu never exits 
+    serial_println!("[ok]");
 }
 
 #[repr(u32)]
-enum QemuExitCode { // each one is 8 bit as in hex
+enum QemuExitCode {
+    // each one is 8 bit as in hex
     Success = 0x10, //16 + 0
     Failed = 0x11,  //16 + 1
 }
-fn exit_qemu (exit_code : QemuExitCode){
+fn exit_qemu(exit_code: QemuExitCode) {
     use x86_64::instructions::port::Port;
-    let mut port = Port::new(0xf4); // creating a port is safe but accessing it is not 
-    unsafe {port.write(exit_code as u32);} // exit_code should implement the portwrite trait which is done only by u8,u16,u32
+    let mut port = Port::new(0xf4); // creating a port is safe but accessing it is not
+    unsafe {
+        port.write(exit_code as u32);
+    } // exit_code should implement the portwrite trait which is done only by u8,u16,u32
 }

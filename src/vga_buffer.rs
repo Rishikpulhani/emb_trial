@@ -1,8 +1,8 @@
 use core::fmt::{self, Error, Write};
 use core::str::{self};
-use volatile::Volatile;
 use lazy_static::lazy_static;
 use spin::Mutex;
+use volatile::Volatile;
 
 #[allow(dead_code)]
 //#[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -149,6 +149,6 @@ macro_rules! print {
     ($($arg:tt)*) => ($crate::vga_buffer::_print(format_args!($($arg)*)));
 }
 #[doc(hidden)]
-pub fn _print(args: fmt::Arguments){
+pub fn _print(args: fmt::Arguments) {
     WRITER.lock().write_fmt(args).unwrap();
 }
