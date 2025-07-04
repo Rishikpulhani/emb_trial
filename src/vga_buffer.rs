@@ -37,7 +37,7 @@ impl ColorCode {
 }
 //character = attribute byte + character value (ascii value)
 //#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-#[derive(Clone, Copy)]
+#[derive(Debug, Clone, Copy)] // copy, clone because of volatile, debug because of asserteq
 #[repr(C)]
 struct ScreenChar {
     ascii_char: u8,
@@ -151,4 +151,25 @@ macro_rules! print {
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
     WRITER.lock().write_fmt(args).unwrap();
+}
+
+// TESTING
+#[test_case]
+fn test_println_simple(){
+    println!("test_println_simple output");
+}
+#[test_case]
+fn test_println_many() {
+    for _ in 0..200 {
+        println!("test_println_many output");
+    }
+}
+#[test_case]
+fn test_println_output(){
+    let s = "Some test string that fits on a single line";
+    println!("{s}");
+    for (i,c) in s.chars().enumerate(){
+        let ch = WRITER.lock().buffer.chars[BUFFER_HEIGHT-2][i].read(); //BUFFER_HEIGHT-2 as newline addition 
+        assert_eq!(c,char::from(ch.ascii_char));
+    }
 }
