@@ -51,21 +51,21 @@ pub extern "C" fn _start() -> ! {
 }
 
 #[cfg(test)]
-pub fn test_runner(tests: &[&dyn Fn()]) {
+pub fn test_runner(tests: &[&dyn Testable]) {
     //tests - It is basically a list of references to types that can be called like a function.
     serial_println!("Running {} tests", tests.len());
     for test in tests {
-        test();
-
+        test.run();
     }
     exit_qemu(QemuExitCode::Success);
 }
 #[test_case]
 fn trivial_assertion() {
-    serial_print!("trivial assertion... ");
+    //serial_print!("trivial assertion... "); // no needof these manual printing as now done using the testable trait
     assert_eq!(1, 1);
     //assert_eq!(1, 2); // on fqailing this calls the panic handler and so qemu never exits 
-    serial_println!("[ok]");
+    //serial_println!("[ok]");
+    //loop{}
 }
 
 #[repr(u32)]
@@ -80,4 +80,17 @@ fn exit_qemu(exit_code: QemuExitCode) {
     unsafe {
         port.write(exit_code as u32);
     } // exit_code should implement the portwrite trait which is done only by u8,u16,u32
+}
+
+trait Testable {
+    fn run(&self);
+}
+impl <T> Testable for T
+where T: Fn() {
+    // all items implementing Fn will also implement testable 
+    fn run(&self) {
+        serial_print!("{}...\t",core::any::type_name::<T>());
+        self();
+        serial_println!("[ok]"); // if ok is prinited then it means that the test didnt panic
+    }
 }
