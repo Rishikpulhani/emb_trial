@@ -23,3 +23,7 @@ panic = "abort"
 test-args = ["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04","-serial","stdio","-display","none"] # configured the device at this location for thr test profile
 test-success-exit-code = 33
 test-timeout = 300
+
+[[test]]
+name = "should_panic"
+harness = false # now there is no need of the test runner both default and custom as only 1 test so can run in the _start directly

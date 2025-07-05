@@ -62,6 +62,7 @@ pub extern "C" fn _start() -> ! {
 //support for qemu ops
 #[repr(u32)]
 pub enum QemuExitCode {
+    // this is a way to stop the execution of this os we are building and since it never happens in real env we only use this in testing env, when the qemu stops which is teh one executing our os binary virtually then it will stop the execution of this binary as well 
     // each one is 8 bit as in hex
     Success = 0x10, //16 + 0
     Failed = 0x11,  //16 + 1
