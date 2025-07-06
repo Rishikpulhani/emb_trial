@@ -1,4 +1,5 @@
 use core::fmt::{self, Error, Write};
+use core::ops::Deref;
 use core::str::{self};
 use lazy_static::lazy_static;
 use spin::Mutex;
@@ -43,6 +44,13 @@ struct ScreenChar {
     ascii_char: u8,
     color_code: ColorCode,
 }
+// try to upgarde version of screenchar but unessary code addition which is not required based on our special context of writing an os 
+// impl Deref for ScreenChar{
+//     type Target = u8;
+//     fn deref(&self) -> &Self::Target {
+//         &self.ascii_char
+//     }
+// }
 // buffer layout
 // the buffer is a 2d array of ScreenChar where each element is a ScreenChar
 const BUFFER_HEIGHT: usize = 25;
@@ -96,7 +104,9 @@ impl Writer {
     fn newline(&mut self) {
         for row in 1..BUFFER_HEIGHT {
             for col in 0..BUFFER_WIDTH {
-                self.buffer.chars[row - 1][col].write(self.buffer.chars[row][col].read());
+                let character = self.buffer.chars[row][col].read(); // immutable borrow 
+                self.buffer.chars[row - 1][col].write(character); // mutable borrow
+                // this works as the mutable borrow happens after the immutable borrow goes out of scope
             }
         }
         self.clear_row(BUFFER_HEIGHT - 1);

@@ -46,6 +46,9 @@ pub extern "C" fn _start() -> ! {
     //     println!("{i}");
     // }
     println!("Hello World{}", "!");
+    // for _ in 0..200 {
+    //     println!("test_println_many output");
+    // }
     #[cfg(test)] // for unit tests related to this crate only 
     test_main();
     loop {}
