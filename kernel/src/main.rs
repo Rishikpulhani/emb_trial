@@ -56,9 +56,12 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! { // noneed of extern c as
     let framebuffer_info = framebuffer.info();
     FrameBufferWriter::new(framebuffer.buffer_mut(), framebuffer_info);
     //log::info!("Hello from framebuffer logger!");
-    WRITER.lock().as_mut().unwrap().write_str("Hello World");
-    WRITER.lock().as_mut().unwrap().write_str("Hello World\n");
-    WRITER.lock().as_mut().unwrap().write_str("Hello World123");
+    // WRITER.lock().as_mut().unwrap().write_str("Hello World");
+    // WRITER.lock().as_mut().unwrap().write_str("Hello World\n");
+    // WRITER.lock().as_mut().unwrap().write_str("Hello World123");
+    println!("Hello World");
+    println!("Hello World\n");
+    println!("Hello World123");
     #[cfg(test)] // for unit tests related to this crate only 
     test_main();
     loop {}

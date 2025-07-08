@@ -1,11 +1,12 @@
 use bootloader_api::info::{FrameBufferInfo, PixelFormat};
-use core::{fmt, ptr};
+use core::{fmt::{self, Write}, ptr};
 use font_constants::BACKUP_CHAR;
 use noto_sans_mono_bitmap::{
     get_raster, get_raster_width, FontWeight, RasterHeight, RasterizedChar,
 };
 use spin::Mutex;
 use lazy_static::lazy_static;
+use core::str::{self};
 /// Additional vertical space between lines
 const LINE_SPACING: usize = 2;
 /// Additional horizontal space between characters.
@@ -153,6 +154,17 @@ impl fmt::Write for FrameBufferWriter {
         Ok(())
     }
 }
-// lazy_static!(
-//     pub static ref WRITER: Mutex<FrameBufferWriter> = Mutex::new(FrameBufferWriter::new());
-// );
+// adding support for println macro
+#[macro_export]
+macro_rules! println {
+    () => (print!("\n"));
+    ($($arg:tt)*) => ($crate::print!("{}\n", format_args!($($arg)*)));
+}
+#[macro_export]
+macro_rules! print {
+    ($($arg:tt)*) => ($crate::framebuffer::_print(format_args!($($arg)*)));
+}
+#[doc(hidden)]
+pub fn _print(args: fmt::Arguments) {
+    WRITER.lock().as_mut().unwrap().write_fmt(args).unwrap();
+}

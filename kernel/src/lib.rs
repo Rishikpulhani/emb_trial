@@ -7,7 +7,7 @@
 use core::panic::PanicInfo;
 
 pub mod serial;
-pub mod vga_buffer;
+//pub mod vga_buffer;
 pub mod framebuffer;
 //support for running tests
 pub trait Testable {

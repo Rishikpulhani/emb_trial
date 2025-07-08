@@ -24,4 +24,22 @@ volatileref expects a valid pointer which is initialsed to be given as an argume
 - soln 3 - use an older version of volatile crate which actually uses volatileptr directly and also implements send and sync (which is actually a bug in a multithreaded context but it doesnt matter in a kernel code where there are no threads and so we can use that directly over soln 2) - Implementing both of these traits would not be safe because it would allow unsynchronized concurrent writes from different threads. [[v0.5] New design with two wrapper types: `VolatilePtr` and `VolatileRef` by phil-opp · Pull Request #29 · rust-osdev/volatile](https://github.com/rust-osdev/volatile/pull/29)
 so because of this and our special usage there is no need of a crate upgade in case of volatile as it is safe to use in our case even with this bug as we arent in a multithreaded envirnment, so just upgrade to a version which is the most latest but with this bug - but here also there will be breaking chnages like in the deref trait but it is just fine to use older version here based on our special context 
 you can get this info from changelog.md [volatile/Changelog.md at main · rust-osdev/volatile](https://github.com/rust-osdev/volatile/blob/main/Changelog.md)
-
+## UART_16550
+this crate can be upgraded directly as there were no breaking chnages and all the api remain the same. 
+## x86_64 
+there is 1 breaking change but worked for now 
+## Bootloader
+there are some problems with using multiboot and grub as they are just in 32 bit protecxted mode and we need to configure the os on our ownto move to the 64 bit long mode. also there are strict restrictions that the multiboot header which is the interface used for loading the os by the grub needs to be in the first 8kb of the os executable. it also requires the os to be in elf format so that the grub bootloader can clearly identify sections of code and can load them into the memory accorgindly. this requires us to write custom linker scriprts for the os to use grub and multiboot and so we use this bootloader crate and bootimage to skip that pert as this automates thats setup
+the currentversion works fine butthe newer one is just faster and optimised
+also the newerone used framebuffer instead if the vga buffer so need to replace that code 
+artifact dependencies - these are the tools we use in rust, like bootimage or like beskar was, thses are just external binaries which we call and run them and use thier resuklt and all this happens at runtime, but we can make them run at compile time as well by making a special file build.rs which cargo runs at compile time and use executes the code of build.rs at compile time and use its results later in the compilation process - this is basiclly invoking a new child process - Output from the binary (e.g., generated files) is used during crate build
+- `bindeps = true`:  - in .cargo/config.toml
+This enables the **artifact-dependencies** feature in Cargo. Specifically, it allows dependencies on binaries (not just libraries) from other packages.  
+Normally, Cargo dependencies are for Rust libraries, but with artifact dependencies, you can depend on executables ("binaries") produced by other packages, and use them as build-time tools or run them during your build process.
+## Build scripts
+Some packages need to compile third-party non-Rust code, for example C libraries. Other packages need to link to C libraries which can either be located on the system or possibly need to be built from source. Others still need facilities for functionality such as code generation before building (think parser generators).
+Cargo does not aim to replace other tools that are well-optimized for these tasks, but it does integrate with them with custom build scripts. Placing a file named `build.rs` in the root of a package will cause Cargo to compile that script and execute it just before building the package.
+Just before a package is built, Cargo will compile a build script into an executable (if it has not already been built). It will then run the script, which may perform any number of tasks. The script may communicate with Cargo by printing specially formatted commands prefixed with `cargo::` to stdout.
+the bootloader crate gives support for writimg to the framebuffer which is inbuilt into the crate functions. - it doesnt give inbuilt support for the vga buffer 
+## Framebuffer
+the framebuffer is also an mmio but it is unlike the vga buffer as it doesnt have a fixed memory affress so there is nor raw pointer access so there is no unsafe code in the static object constraction and so no need of lazy static it can be initialsed at compile time using a mutex which will block a space for it 
