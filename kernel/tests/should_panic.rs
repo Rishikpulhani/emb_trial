@@ -5,7 +5,7 @@
 //#![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
-use emb_trial::{exit_qemu, serial_println,QemuExitCode};
+use kernel::{exit_qemu, serial_println,QemuExitCode};
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {

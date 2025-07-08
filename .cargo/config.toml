@@ -1,9 +1,13 @@
-[unstable]
-build-std-features = ["compiler-builtins-mem"]
-build-std = ["core", "compiler_builtins"]
-panic-abort-tests = true
+# [unstable]
+# build-std-features = ["compiler-builtins-mem"]
+# build-std = ["core", "compiler_builtins"]
+# panic-abort-tests = true
 
-[build]
-target = ["os_comp_target.json"] #now no need to add the target flag each time 
-[target.'cfg(target_os = "none")']
-runner = "bootimage runner" 
+# [build]
+# target = ["os_comp_target.json"] #now no need to add the target flag each time 
+# [target.'cfg(target_os = "none")']
+# runner = "bootimage runner" 
+
+[unstable]
+panic-abort-tests = true
+bindeps = true

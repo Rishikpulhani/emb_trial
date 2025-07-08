@@ -1,15 +1,15 @@
 #![no_std]
 #![no_main]
 #![feature(custom_test_frameworks)]
-#![test_runner(emb_trial::test_runner)] // here test_runner was the func name which will be run when we do cargo test
+#![test_runner(kernel::test_runner)] // here test_runner was the func name which will be run when we do cargo test
 #![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
-use emb_trial::println;
+use kernel::println;
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
-    emb_trial::test_panic_handler(_info);
+    kernel::test_panic_handler(_info);
     loop {}
 }
 
