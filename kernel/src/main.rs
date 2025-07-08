@@ -10,7 +10,7 @@ use bootloader_api::{entry_point, BootInfo};
 use core::{fmt::Write, panic::PanicInfo};
 use kernel::println;
 use log::{info, warn, error};
-use kernel::framebuffer::FrameBufferWriter;
+use kernel::framebuffer::{FrameBufferWriter, WRITER};
 
 //use crate::vga_buffer;
  entry_point!(kernel_main); // The provided entry_point macro will encode the configuration settings into a separate ELF section of the compiled kernel executable., the kernel main is the frst argument and the second is optional and is to be used if we want some other config for our kernel elf. The macro checks the signature of your entry point function and generates a _start entry point symbol for it.
@@ -54,9 +54,11 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! { // noneed of extern c as
     // }
     let framebuffer =  boot_info.framebuffer.as_mut().expect("Framebuffer not available");
     let framebuffer_info = framebuffer.info();
-    let mut WRITER = FrameBufferWriter::new(framebuffer.buffer_mut(), framebuffer_info);
-    log::info!("Hello from framebuffer logger!");
-    WRITER.write_str("Hello World");
+    FrameBufferWriter::new(framebuffer.buffer_mut(), framebuffer_info);
+    //log::info!("Hello from framebuffer logger!");
+    WRITER.lock().as_mut().unwrap().write_str("Hello World");
+    WRITER.lock().as_mut().unwrap().write_str("Hello World\n");
+    WRITER.lock().as_mut().unwrap().write_str("Hello World123");
     #[cfg(test)] // for unit tests related to this crate only 
     test_main();
     loop {}

@@ -4,7 +4,8 @@ use font_constants::BACKUP_CHAR;
 use noto_sans_mono_bitmap::{
     get_raster, get_raster_width, FontWeight, RasterHeight, RasterizedChar,
 };
-
+use spin::Mutex;
+use lazy_static::lazy_static;
 /// Additional vertical space between lines
 const LINE_SPACING: usize = 2;
 /// Additional horizontal space between characters.
@@ -50,10 +51,10 @@ pub struct FrameBufferWriter {
     x_pos: usize,
     y_pos: usize,
 }
-
+pub static WRITER: Mutex<Option<FrameBufferWriter>> = Mutex::new(None);
 impl FrameBufferWriter {
     /// Creates a new logger that uses the given framebuffer.
-    pub fn new(framebuffer: &'static mut [u8], info: FrameBufferInfo) -> Self {
+    pub fn new(framebuffer: &'static mut [u8], info: FrameBufferInfo){
         let mut logger = Self {
             framebuffer,
             info,
@@ -61,7 +62,7 @@ impl FrameBufferWriter {
             y_pos: 0,
         };
         logger.clear();
-        logger
+        *WRITER.lock() = Some(logger);
     }
 
     fn newline(&mut self) {
@@ -152,3 +153,6 @@ impl fmt::Write for FrameBufferWriter {
         Ok(())
     }
 }
+// lazy_static!(
+//     pub static ref WRITER: Mutex<FrameBufferWriter> = Mutex::new(FrameBufferWriter::new());
+// );
