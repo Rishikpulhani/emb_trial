@@ -1,3 +1,6 @@
+// the code of this file is usefulon the master branch which uses the older version of the bootloader crate 
+// the newer version of the bootloader crate uses the framebuffer to print text to the screen 
+
 use core::fmt::{self, Error, Write};
 use core::ops::Deref;
 use core::str::{self};

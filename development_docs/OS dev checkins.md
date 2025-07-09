@@ -9,3 +9,9 @@
 27/06/2025 - finished till global interface blog 3
 30/06/2025 - finished blog 3
 ## July
+02/07/2025 - finished blog 4 till exiting qemu
+03/07/2025 - finished blog 4 till exiting hiding qemu
+04/07/2025 - finished blog 4 
+05/07/2025 - finished upgrade of volatile, spin
+06/07/2025 - finished upgrade of uaart16550, x86_64
+08/07/2025 - finished upgrade of bootloader crate
