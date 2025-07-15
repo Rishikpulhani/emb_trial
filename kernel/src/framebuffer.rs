@@ -5,7 +5,6 @@ use noto_sans_mono_bitmap::{
     get_raster, get_raster_width, FontWeight, RasterHeight, RasterizedChar,
 };
 use spin::Mutex;
-use lazy_static::lazy_static;
 use core::str::{self};
 /// Additional vertical space between lines
 const LINE_SPACING: usize = 2;

@@ -1,4 +1,5 @@
 #![no_std]
+#![feature(abi_x86_interrupt)]
 #![cfg_attr(test, no_main)] // Since our lib.rs is tested independently of our main.rs, we need to add a _start entry point and a panic handler when the library is compiled in test mode. By using the cfg_attr crate attribute, we conditionally enable the no_main attribute in this case.
 #![feature(custom_test_frameworks)]
 #![test_runner(crate::test_runner)] // these tests are for the unit tests for this lib
@@ -6,9 +7,12 @@
 
 use core::panic::PanicInfo;
 
+use crate::interrupts::init_idt;
+
 pub mod serial;
 //pub mod vga_buffer;
 pub mod framebuffer;
+pub mod interrupts;
 //support for running tests
 pub trait Testable {
     fn run(&self);
@@ -54,9 +58,15 @@ pub fn test_panic_handler(_info: &PanicInfo) -> ! {
 fn panic(info: &PanicInfo) -> ! {
     test_panic_handler(info) // we seperated this out so that we can make the same handler available to executables as well just like we do in case of std lib
 }
+#[cfg(test)]
+#[test_case]
+fn test_breakpoint_exception() {
+    x86_64::instructions::interrupts::int3();
+}
 #[cfg(test)] // only for unit tests
 #[unsafe(no_mangle)]
 pub extern "C" fn _start() -> ! {
+    init();
     test_main();
     loop{}
 }
@@ -74,4 +84,9 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
     unsafe {
         port.write(exit_code as u32);
     } // exit_code should implement the portwrite trait which is done only by u8,u16,u32
+}
+
+// INTERRUPTS 
+pub fn init(){
+    init_idt();
 }

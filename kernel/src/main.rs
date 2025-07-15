@@ -9,8 +9,8 @@
 use bootloader_api::{entry_point, BootInfo};
 use core::{fmt::Write, panic::PanicInfo};
 use kernel::println;
-use log::{info, warn, error};
-use kernel::framebuffer::{FrameBufferWriter, WRITER};
+use kernel::framebuffer::FrameBufferWriter;
+use kernel::init;
 
 //use crate::vga_buffer;
  entry_point!(kernel_main); // The provided entry_point macro will encode the configuration settings into a separate ELF section of the compiled kernel executable., the kernel main is the frst argument and the second is optional and is to be used if we want some other config for our kernel elf. The macro checks the signature of your entry point function and generates a _start entry point symbol for it.
@@ -44,7 +44,7 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! { // noneed of extern c as
     // vga_buffer::WRITER.lock().write_string("ello ");
     // write!(vga_buffer::WRITER.lock(), "The numbers are {} and {}", 42, 1.0 / 3.0).unwrap();
     // no import as already in the root namespace as macro export
-    //panic!("Some panic message");
+    
     // for i in 1..100{
     //     println!("{i}");
     // }
@@ -59,9 +59,13 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! { // noneed of extern c as
     // WRITER.lock().as_mut().unwrap().write_str("Hello World");
     // WRITER.lock().as_mut().unwrap().write_str("Hello World\n");
     // WRITER.lock().as_mut().unwrap().write_str("Hello World123");
-    println!("Hello World");
+    
     println!("Hello World\n");
+    //panic!("Some panic message");
     println!("Hello World123");
+    init();
+    x86_64::instructions::interrupts::int3();
+    println!("It did not crash!");
     #[cfg(test)] // for unit tests related to this crate only 
     test_main();
     loop {}

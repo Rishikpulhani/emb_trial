@@ -16,10 +16,7 @@ noto-sans-mono-bitmap = "0.2.0"
 version = "1.0"
 features = ["spin_no_std"]
 
-[profile.dev]
-panic = "abort"
-[profile.release]
-panic = "abort"
+
 
 # [package.metadata.bootimage]
 # test-args = ["-device", "isa-debug-exit,iobase=0xf4,iosize=0x04","-serial","stdio","-display","none"] # configured the device at this location for thr test profile
