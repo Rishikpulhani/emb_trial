@@ -1,0 +1,45 @@
+An exception signals that something is wrong with the current instruction.
+Exceptions are classified as:
+- **Faults**: These can be corrected and the program may continue as if nothing happened.
+- **Traps**: Traps are reported immediately after the execution of the trapping instruction.
+- **Aborts**: Some severe unrecoverable error.
+in an exception CPU interrupts its current work and immediately calls a specific exception handler function, depending on the kind of exception the specific handler is invoked 
+## Exception handling 
+the os after getting booted sets up an interupt descriptor table which is refered directly by the cpu. in this tyable there is the address of aech handler function for each kind of exception. since the hardware has doirect access it needs to follow a predefined format as accessing the table is hardwired directly into the cpu and is directly accessed. the wiring is done keepning a structure in mind. also the idt must be placed at a certian memory llocation whose address is made available to the cpu by the os 
+## Global Descriptor Table 
+earlier in the segmentation based computers they used to have this table to describe various segements according to the kind of rules they follow 
+- What kind of code or data is inside it,
+- Whether it’s readable/writable,
+- Its privilege level (kernel or user),
+- In older modes: where it starts and ends in memory.
+the entry is the segemnt selector which is unique for each rule luike an index
+although we dont use segementation in 64 bit systems buut we still use the the code segement registers for some things described below in the 64 bit mode 
+code segment register - this stores the selector value which points to the gdt rule which is
+- This is executable code
+- It’s running at privilege level 0 (kernel) or 3 (user) - Even in 64-bit mode, when segmentation is mostly unused, the **code segment descriptor** still tells the CPU **what privilege level** to use for the handler.
+- In long mode, this is the **only thing** CS is really used for.
+Whenever you **call an interrupt handler**, the CPU sets `CS` using the **GDT Selector** from the IDT entry — that's why it's needed
+8 bit = 1 byte 
+Even in the 64 bit systems there is a code segment regoster - although no segementation is used in the 64 bit system we still have its support for 32 bit protected modes 
+a segement register is the one which stores the base and size value of the segemnt along woith some meta data about the segemnt which includes the the priviledge level, read only etc - so here in 64 bit we ignore the base and size bits of the code segemnt register but still use the metadata bits to describe the priviledge level of the code of the excetion handler to be executed in along woth some other things - so in the idt entry the gdt selector is the selector of the code segement metadata 
+the 64 bit address in the idt entry of the interupt handler - the gdt selector entry tells metadata about this code in this handler - for actual segmentation it will also have base and sooze but in 64 bit it is ignored 
+the gdt selector value is then loaded into the CS register which has the metadata for the handler code to be executed 
+**NOTE - the address in the idt entry to the function handler is the virtual address and is lster translated by the mmu**
+## x86-interupt abi
+the abi states how the function is to be run and they specify where function parameters are placed (e.g. in registers or on the stack) and how results are returned.
+exception is similar to a function call but to call a function there is a specific intruction added by the compiler to call it which is the call instruction which lets the cpu know that it is a function call
+since the compiler knows beforehand while assembling the code that there will be a function call here so it has 2 options to prepare the registers as they need to be saved before executing the function call based on what kind of rgister it it 
+- preserved register - their value must be the same before and after exiting the function call and the function being called has the resposibilty of saving these once it is called and before stating to execute and before returning restore thuer values to the previous ones - to save the register values while executing the function it stores thier value on its stack as a stack frame and when it returns it pops that stack frame to restore the values - here the function is allowed to use theese registers but must restore their original value prior ot execution
+- scartch register - the function doesnt need to ensure thatt these registers values are the same after it has finished executing - if the caller of the function wants to use the original vales then its his resposibilty to save these somewhere beofre the exeution starts and then restore it - since there is a call instruction getting executed before even function call so the compiler can presecily predict the add code to move the values of these registers in some place 
+this distinction is made in function call as short functions dont require much registers and saving and registers at every finction call wastes cpu cycles as it requires memory access and so first the caller saves a few to clear space for the function beiing called if it needs more then the function being called with create same space by saving the oreserved registers 
+in case of exceptions there is no call instruction and so the compiler or the cpu doesnt no in advance when an exception occurs and when it will need to switch to some handler function and so there is no code inserted by the compiler to save registyers like the aboove method and so the handler function has no choice but to save all the registers to the stack frame and this is what is the x86-interupt abi -  so alll are preserved registers here 
+efficiency increase - the compiler when compiling code for this abi knows beforehand which registers will be used by this interupt handler and so generates the register saving code only for those registers as the others are untouched so not save them on the stack but keep them where they are
+## Interrupt Stack Frame
+unlike a normal function where we know when the function is called because of the call instruction we have a ret instruction which is popped once the function is done executing and all this happens on the same stack but in case of interupts the stacks might change and also the execution of the interupt function handler happens in a different context than in which the normal function execution is done - it is seperate from the program execution context which was running just when the interupt occured and so we need to save other registers as well along with the return address to resume the execution of the program that was running 
+things like the initial stack pointer and the stack segment pointer (in 64 bit its setbto null as no segementation) and the flags registers are all stored but the final stack as there may be a stack switch if the inyterupt execution occurs in the kernel prriviledge level instaed of the user mode, also push the instruction pointer as this acts like the return address as this is the point where the execution resumes from - later after savong these register values onto the new stack it will fill these registers with values required for executing the interupt handler 
+## `x86-interrupt` calling convention
+this is a kind of an abi which is specially cinfigured fir handing interupts in an x86 system. 
+- in normal c abi function calls, since these are func calls the arguements ti the functions are passed via registers and if the registers get full and arguments still remain then they are oassed via the stack of the function but in case if interuot handlers they need access to the register values of the user programs but it vcant use them directy as it may chn\ange the va;lues of the user registers and hence there is no way to restart the use prog execution after the interupt function. so instead the x86-interupt abi first backs up the register vaues as a stack frame and gives that as an argument to the handler, also the handler code in the bin is written in terms iif stack access and not register access. - after that the handler function is also free to use the registers 
+- it provides abstraction for complex stack alignments as well, it sees the the kind of function handlers signature if its 2 args then it has an error code which is 8 bytes so misaligns the 16 bytes stack alignment for ssd instructions (SIMD), the 2 types wrappers on the functions see to it that you give the correct function signature (handlerfunc, handlerfuncwitherrcode)
+## IDT initialisation
+this is 

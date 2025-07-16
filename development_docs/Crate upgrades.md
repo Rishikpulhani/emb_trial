@@ -43,3 +43,4 @@ Just before a package is built, Cargo will compile a build script into an execut
 the bootloader crate gives support for writimg to the framebuffer which is inbuilt into the crate functions. - it doesnt give inbuilt support for the vga buffer 
 ## Framebuffer
 the framebuffer is also an mmio but it is unlike the vga buffer as it doesnt have a fixed memory affress so there is nor raw pointer access so there is no unsafe code in the static object constraction and so no need of lazy static it can be initialsed at compile time using a mutex which will block a space for it 
+the location of the frsmebuffer is decided by the bios at the time of booting 
