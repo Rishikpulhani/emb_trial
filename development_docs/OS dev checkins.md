@@ -15,3 +15,7 @@
 05/07/2025 - finished upgrade of volatile, spin
 06/07/2025 - finished upgrade of uaart16550, x86_64
 08/07/2025 - finished upgrade of bootloader crate
+12/07/2025 - finished cpu exceptions till implementation
+13/07/2025 - finished cpu exceptions 
+15/07/2025 - worked on testing framework with new bootloader version
+16/07/2025 - fiished working on testing framework with new bootloader version
