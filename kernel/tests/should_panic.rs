@@ -6,6 +6,7 @@
 
 use core::panic::PanicInfo;
 use kernel::{exit_qemu, serial_println,QemuExitCode};
+use bootloader_api::{BootInfo,entry_point};
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
@@ -13,9 +14,9 @@ fn panic(_info: &PanicInfo) -> ! {
     exit_qemu(QemuExitCode::Success); // stops execution of this crate altogether - so can run only 1 test in this crate 
     loop {}
 }
+entry_point!(test_kernel_main);
 
-#[no_mangle]
-pub extern "C" fn _start() -> !{
+fn test_kernel_main(boot_info: &'static mut BootInfo) -> ! {
     //test_main();
     // in harness false no test main is generated 
     should_fail();
@@ -23,6 +24,15 @@ pub extern "C" fn _start() -> !{
     exit_qemu(QemuExitCode::Failed);
     loop {}
 }
+// #[no_mangle]
+// pub extern "C" fn _start() -> !{
+//     //test_main();
+//     // in harness false no test main is generated 
+//     should_fail();
+//     serial_println!("[test did not panic]");
+//     exit_qemu(QemuExitCode::Failed);
+//     loop {}
+// }
 
 // Since the runner always exits after running a single test, it does not make sense to define more than one #[test_case] function.
 //#[test_case]

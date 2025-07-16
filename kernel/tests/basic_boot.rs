@@ -5,16 +5,21 @@
 #![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
-use kernel::println;
+use kernel::{println,init,framebuffer::FrameBufferWriter};
+use bootloader_api::{entry_point,BootInfo};
 
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     kernel::test_panic_handler(_info);
     loop {}
 }
+entry_point!(test_kernel_main);
 
-#[no_mangle]
-pub extern "C" fn _start() -> !{
+fn test_kernel_main(boot_info: &'static mut BootInfo) -> ! {
+    let framebuffer =  boot_info.framebuffer.as_mut().expect("Framebuffer not available");
+    let framebuffer_info = framebuffer.info();
+    FrameBufferWriter::new(framebuffer.buffer_mut(), framebuffer_info);
+    init();
     test_main();
     loop {}
 }

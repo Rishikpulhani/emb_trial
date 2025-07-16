@@ -6,7 +6,7 @@
 #![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
-
+use crate::framebuffer::FrameBufferWriter;
 use crate::interrupts::init_idt;
 
 pub mod serial;
@@ -58,18 +58,40 @@ pub fn test_panic_handler(_info: &PanicInfo) -> ! {
 fn panic(info: &PanicInfo) -> ! {
     test_panic_handler(info) // we seperated this out so that we can make the same handler available to executables as well just like we do in case of std lib
 }
+// #[cfg(test)]
+// #[test_case]
+// fn test_breakpoint_exception() {
+//     x86_64::instructions::interrupts::int3();
+// }
+
+
+// #[cfg(test)] // only for unit tests
+// #[unsafe(no_mangle)]
+// pub extern "C" fn _start() -> ! {
+//     init();
+//     test_main();
+//     loop{}
+// }
+// this _start is for the older version of the bootloader crate 
+// _ start for newer version of bootloader crate
+
+
 #[cfg(test)]
-#[test_case]
-fn test_breakpoint_exception() {
-    x86_64::instructions::interrupts::int3();
-}
-#[cfg(test)] // only for unit tests
-#[unsafe(no_mangle)]
-pub extern "C" fn _start() -> ! {
+use bootloader_api::{entry_point, BootInfo};
+
+#[cfg(test)]
+entry_point!(test_kernel_main);
+
+#[cfg(test)]
+fn test_kernel_main(boot_info: &'static mut BootInfo) -> ! {
+    let framebuffer =  boot_info.framebuffer.as_mut().expect("Framebuffer not available");
+    let framebuffer_info = framebuffer.info();
+    FrameBufferWriter::new(framebuffer.buffer_mut(), framebuffer_info);
     init();
     test_main();
-    loop{}
+    loop {}
 }
+
 //support for qemu ops
 #[repr(u32)]
 pub enum QemuExitCode {
