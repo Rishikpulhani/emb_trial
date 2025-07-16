@@ -58,11 +58,11 @@ pub fn test_panic_handler(_info: &PanicInfo) -> ! {
 fn panic(info: &PanicInfo) -> ! {
     test_panic_handler(info) // we seperated this out so that we can make the same handler available to executables as well just like we do in case of std lib
 }
-// #[cfg(test)]
-// #[test_case]
-// fn test_breakpoint_exception() {
-//     x86_64::instructions::interrupts::int3();
-// }
+#[cfg(test)]
+#[test_case]
+fn test_breakpoint_exception() {
+    x86_64::instructions::interrupts::int3();
+}
 
 
 // #[cfg(test)] // only for unit tests
