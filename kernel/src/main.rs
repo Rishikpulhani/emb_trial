@@ -30,40 +30,25 @@ fn panic(info: &PanicInfo) -> ! {
 //static HELLO: &[u8] = b"Hello World!";
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! { // noneed of extern c as the entry point macro itself exposes this func as a _start symbol for lnking 
     // here this is a rust function which is accessed from outside but this happens at the c abi
-    // let vga_buffer = 0xb8000 as *mut u8;
-
-    // for (i, &byte) in HELLO.iter().enumerate() {
-    //     unsafe {
-    //         *vga_buffer.offset(i as isize * 2) = byte;
-    //         *vga_buffer.offset(i as isize * 2 + 1) = 0xb;
-    //     }
-    // }
-    //vga_buffer::print_something();
-    // use core::fmt::Write;
-    // vga_buffer::WRITER.lock().write_byte(b'H');
-    // vga_buffer::WRITER.lock().write_string("ello ");
-    // write!(vga_buffer::WRITER.lock(), "The numbers are {} and {}", 42, 1.0 / 3.0).unwrap();
-    // no import as already in the root namespace as macro export
-    
-    // for i in 1..100{
-    //     println!("{i}");
-    // }
-    //println!("Hello World{}", "!");
-    // for _ in 0..200 {
-    //     println!("test_println_many output");
-    // }
     let framebuffer =  boot_info.framebuffer.as_mut().expect("Framebuffer not available");
     let framebuffer_info = framebuffer.info();
     FrameBufferWriter::new(framebuffer.buffer_mut(), framebuffer_info);
     //log::info!("Hello from framebuffer logger!");
     // WRITER.lock().as_mut().unwrap().write_str("Hello World");
-    // WRITER.lock().as_mut().unwrap().write_str("Hello World\n");
-    // WRITER.lock().as_mut().unwrap().write_str("Hello World123");
     
     println!("Hello World\n");
     //panic!("Some panic message");
     println!("Hello World123");
     init();
+    // unsafe{
+    //     *(0xdeadbeef as *mut u8) = 42;
+    // }
+    fn stack_overflow() {
+        stack_overflow(); // for each recursion, the return address is pushed
+    }
+
+    // trigger a stack overflow
+    stack_overflow();
     x86_64::instructions::interrupts::int3();
     println!("It did not crash!");
     #[cfg(test)] // for unit tests related to this crate only 
