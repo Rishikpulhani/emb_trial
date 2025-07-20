@@ -16,6 +16,9 @@
 06/07/2025 - finished upgrade of uaart16550, x86_64
 08/07/2025 - finished upgrade of bootloader crate
 12/07/2025 - finished cpu exceptions till implementation
-13/07/2025 - finished cpu exceptions 
+13/07/2025 - finished cpu exceptions blog 5
 15/07/2025 - worked on testing framework with new bootloader version
-16/07/2025 - fiished working on testing framework with new bootloader version
+16/07/2025 - finished working on testing framework with new bootloader version
+18/07/2025 - finished switching stacks 
+19/07/2025 - finished till creating global descriptor table
+20/07/2025 - finished blog 6
