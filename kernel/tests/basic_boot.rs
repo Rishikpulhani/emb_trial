@@ -11,7 +11,6 @@ use bootloader_api::{entry_point,BootInfo};
 #[panic_handler]
 fn panic(_info: &PanicInfo) -> ! {
     kernel::test_panic_handler(_info);
-    loop {}
 }
 entry_point!(test_kernel_main);
 

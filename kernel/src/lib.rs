@@ -6,13 +6,14 @@
 #![reexport_test_harness_main = "test_main"]
 
 use core::panic::PanicInfo;
-use crate::framebuffer::FrameBufferWriter;
+use crate::{framebuffer::FrameBufferWriter, gdt::init_gdt};
 use crate::interrupts::init_idt;
 
 pub mod serial;
-//pub mod vga_buffer;
 pub mod framebuffer;
 pub mod interrupts;
+pub mod gdt;
+//pub mod vga_buffer;
 //support for running tests
 pub trait Testable {
     fn run(&self);
@@ -39,11 +40,7 @@ pub fn test_runner(tests: &[&dyn Testable]) {
 }
 #[test_case]
 fn trivial_assertion() {
-    //serial_print!("trivial assertion... "); // no needof these manual printing as now done using the testable trait
     assert_eq!(1, 1);
-    //assert_eq!(1, 2); // on fqailing this calls the panic handler and so qemu never exits 
-    //serial_println!("[ok]");
-    //loop{}
 }
 
 // for both unit and integration tests and also other binaries using it 
@@ -58,11 +55,7 @@ pub fn test_panic_handler(_info: &PanicInfo) -> ! {
 fn panic(info: &PanicInfo) -> ! {
     test_panic_handler(info) // we seperated this out so that we can make the same handler available to executables as well just like we do in case of std lib
 }
-#[cfg(test)]
-#[test_case]
-fn test_breakpoint_exception() {
-    x86_64::instructions::interrupts::int3();
-}
+
 
 
 // #[cfg(test)] // only for unit tests
@@ -110,5 +103,6 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
 
 // INTERRUPTS 
 pub fn init(){
+    init_gdt();
     init_idt();
 }

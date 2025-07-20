@@ -24,33 +24,18 @@ fn panic(_info: &PanicInfo) -> ! {
 #[cfg(test)] // only for unit tests
 #[panic_handler]
 fn panic(info: &PanicInfo) -> ! {
-    kernel::test_panic_handler(info) 
+    kernel::test_panic_handler(info);
 }
 
-//static HELLO: &[u8] = b"Hello World!";
 fn kernel_main(boot_info: &'static mut BootInfo) -> ! { // noneed of extern c as the entry point macro itself exposes this func as a _start symbol for lnking 
     // here this is a rust function which is accessed from outside but this happens at the c abi
     let framebuffer =  boot_info.framebuffer.as_mut().expect("Framebuffer not available");
     let framebuffer_info = framebuffer.info();
     FrameBufferWriter::new(framebuffer.buffer_mut(), framebuffer_info);
-    //log::info!("Hello from framebuffer logger!");
-    // WRITER.lock().as_mut().unwrap().write_str("Hello World");
-    
-    println!("Hello World\n");
     //panic!("Some panic message");
-    println!("Hello World123");
-    init();
-    // unsafe{
-    //     *(0xdeadbeef as *mut u8) = 42;
-    // }
-    fn stack_overflow() {
-        stack_overflow(); // for each recursion, the return address is pushed
-    }
-
-    // trigger a stack overflow
-    stack_overflow();
+    init(); // we create such init functions because these are lazy statics and are initialised at runtime when they are called
     x86_64::instructions::interrupts::int3();
-    println!("It did not crash!");
+    //println!("It did not crash!");
     #[cfg(test)] // for unit tests related to this crate only 
     test_main();
     loop {}

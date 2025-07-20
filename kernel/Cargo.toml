@@ -26,3 +26,6 @@ features = ["spin_no_std"]
 name = "should_panic"
 harness = false # now there is no need of the test runner both default and custom as only 1 test so can run in the _start directly
 
+[[test]]
+name = "stack_overflow"
+harness = false
