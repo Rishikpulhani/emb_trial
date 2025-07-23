@@ -7,7 +7,7 @@
 
 use core::panic::PanicInfo;
 use crate::{framebuffer::FrameBufferWriter, gdt::init_gdt};
-use crate::interrupts::init_idt;
+use crate::interrupts::{init_idt,PICS};
 
 pub mod serial;
 pub mod framebuffer;
@@ -105,4 +105,8 @@ pub fn exit_qemu(exit_code: QemuExitCode) {
 pub fn init(){
     init_gdt();
     init_idt();
+    unsafe {
+        PICS.lock().initialize();
+    }
+    x86_64::instructions::interrupts::enable();
 }

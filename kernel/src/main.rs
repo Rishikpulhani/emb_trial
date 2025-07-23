@@ -34,8 +34,8 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! { // noneed of extern c as
     FrameBufferWriter::new(framebuffer.buffer_mut(), framebuffer_info);
     //panic!("Some panic message");
     init(); // we create such init functions because these are lazy statics and are initialised at runtime when they are called
-    x86_64::instructions::interrupts::int3();
-    //println!("It did not crash!");
+    //x86_64::instructions::interrupts::int3();
+    println!("It did not crash!");
     #[cfg(test)] // for unit tests related to this crate only 
     test_main();
     loop {}
