@@ -1,4 +1,4 @@
-use x86_64::structures::{gdt, idt::{InterruptDescriptorTable, InterruptStackFrame}};
+use x86_64::{instructions::port, structures::{gdt, idt::{InterruptDescriptorTable, InterruptStackFrame}}};
 use crate::{println,exit_qemu,print};
 use pic8259::ChainedPics;
 use lazy_static::lazy_static;
@@ -20,6 +20,7 @@ lazy_static!{
             // unsafe as need to ensure that the stack assigned is valid
         }
         idt[InterruptIndex::TIMER as u8].set_handler_fn(timer_interrupt_handler);
+        idt[InterruptIndex::KeyBoard as u8].set_handler_fn(keyboard_interrupt_handler);
         idt
     };
 }
@@ -30,6 +31,7 @@ pub fn init_idt(){
 #[repr(u8)]
 pub enum InterruptIndex {
     TIMER = PIC_1_OFFSET,
+    KeyBoard, // by deafualt taken as previous value + 1
 }
 // no need of this code in the updated version of the library as new method directly uses u8
 // impl InterruptIndex {
@@ -54,6 +56,32 @@ extern "x86-interrupt" fn timer_interrupt_handler(stack_frame: InterruptStackFra
     print!(".");
     unsafe {
         PICS.lock().notify_end_of_interrupt(InterruptIndex::TIMER as u8);
+    }
+}
+extern "x86-interrupt" fn keyboard_interrupt_handler(stack_frame: InterruptStackFrame){
+    let mut port = port::Port::new(0x60);
+    let scancode: u8 = unsafe {
+        port.read()
+    };
+    let key = match scancode {
+        0x02 => Some('1'),
+        0x03 => Some('2'),
+        0x04 => Some('3'),
+        0x05 => Some('4'),
+        0x06 => Some('5'),
+        0x07 => Some('6'),
+        0x08 => Some('7'),
+        0x09 => Some('8'),
+        0x0a => Some('9'),
+        0x0b => Some('0'),
+        _ => None,
+    };
+    if let Some(key) = key{
+        print!("{}",key);
+    }
+    // print!("{scancode}"); // internally the print function has the logic to stop interrupts during execution
+    unsafe {
+        PICS.lock().notify_end_of_interrupt(InterruptIndex::KeyBoard as u8);
     }
 }
 #[cfg(test)]
