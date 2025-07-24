@@ -48,7 +48,7 @@ pub fn test_panic_handler(_info: &PanicInfo) -> ! {
     serial_println!("[failed]\n"); // as panic only happens when a test fails 
     serial_println!("Error: {}\n", _info);
     exit_qemu(QemuExitCode::Failed); // since we are seeing the error in the console we dont need to the qemu to be running so close it 
-    loop {}
+    hlt_loop();
 }
 #[cfg(test)] // only for unit tests
 #[panic_handler]
@@ -82,7 +82,7 @@ fn test_kernel_main(boot_info: &'static mut BootInfo) -> ! {
     FrameBufferWriter::new(framebuffer.buffer_mut(), framebuffer_info);
     init();
     test_main();
-    loop {}
+    hlt_loop();
 }
 
 //support for qemu ops
@@ -109,4 +109,9 @@ pub fn init(){
         PICS.lock().initialize();
     }
     x86_64::instructions::interrupts::enable();
+}
+pub fn hlt_loop() -> !{
+    loop {
+        x86_64::instructions::hlt();
+    }
 }

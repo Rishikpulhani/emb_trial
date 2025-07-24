@@ -8,7 +8,7 @@
 
 use bootloader_api::{entry_point, BootInfo};
 use core::{fmt::Write, panic::PanicInfo};
-use kernel::println;
+use kernel::{hlt_loop, println};
 use kernel::framebuffer::FrameBufferWriter;
 use kernel::init;
 
@@ -18,8 +18,10 @@ use kernel::init;
 #[cfg(not(test))]
 #[panic_handler] // no need to mark the panic function with no_mangle as it is not refered by its name while linking instead it is marked as the panic handler to identify it uniquely
 fn panic(_info: &PanicInfo) -> ! {
+    use kernel::hlt_loop;
+
     println!("{}", _info);
-    loop {}
+    hlt_loop();
 }
 #[cfg(test)] // only for unit tests
 #[panic_handler]
@@ -36,9 +38,13 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! { // noneed of extern c as
     init(); // we create such init functions because these are lazy statics and are initialised at runtime when they are called
     //x86_64::instructions::interrupts::int3();
     println!("It did not crash!");
+    for i in 1..1000 {
+        println!("It did not crash!");
+    } // deadlock provocation - non deterministic to determine the number of print which will be executed as depends on when asyncly the timer interrupt occurs 
     #[cfg(test)] // for unit tests related to this crate only 
     test_main();
-    loop {}
+    // loop {}
+    hlt_loop();
 }
 
 

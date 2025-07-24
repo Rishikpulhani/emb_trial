@@ -6,6 +6,7 @@ use noto_sans_mono_bitmap::{
 };
 use spin::Mutex;
 use core::str::{self};
+use x86_64;
 /// Additional vertical space between lines
 const LINE_SPACING: usize = 2;
 /// Additional horizontal space between characters.
@@ -165,5 +166,7 @@ macro_rules! print {
 }
 #[doc(hidden)]
 pub fn _print(args: fmt::Arguments) {
-    WRITER.lock().as_mut().unwrap().write_fmt(args).unwrap();
+    x86_64::instructions::interrupts::without_interrupts(|| {
+        WRITER.lock().as_mut().unwrap().write_fmt(args).unwrap();
+    });
 }
