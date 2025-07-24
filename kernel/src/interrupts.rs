@@ -1,3 +1,4 @@
+use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
 use x86_64::{instructions::port, structures::{gdt, idt::{InterruptDescriptorTable, InterruptStackFrame}}};
 use crate::{println,exit_qemu,print};
 use pic8259::ChainedPics;
@@ -59,27 +60,45 @@ extern "x86-interrupt" fn timer_interrupt_handler(stack_frame: InterruptStackFra
     }
 }
 extern "x86-interrupt" fn keyboard_interrupt_handler(stack_frame: InterruptStackFrame){
+    // let mut port = port::Port::new(0x60);
+    // let scancode: u8 = unsafe {
+    //     port.read()
+    // };
+    // let key = match scancode {
+    //     0x02 => Some('1'),
+    //     0x03 => Some('2'),
+    //     0x04 => Some('3'),
+    //     0x05 => Some('4'),
+    //     0x06 => Some('5'),
+    //     0x07 => Some('6'),
+    //     0x08 => Some('7'),
+    //     0x09 => Some('8'),
+    //     0x0a => Some('9'),
+    //     0x0b => Some('0'),
+    //     _ => None,
+    // };
+    // if let Some(key) = key{
+    //     print!("{}",key);
+    // }
+    // print!("{scancode}"); // internally the print function has the logic to stop interrupts during execution
+    lazy_static!{ // this static is initilased in the first interrupt call and in all further ones use the same instance 
+        static ref KEYBOARD: Mutex<Keyboard<layouts::Us104Key,ScancodeSet1>> = { // not pub as only accessible inside of the function call
+            Mutex::new(Keyboard::new(ScancodeSet1::new(), layouts::Us104Key, HandleControl::Ignore))
+        };
+    }
+    let mut keyboard = KEYBOARD.lock();
     let mut port = port::Port::new(0x60);
     let scancode: u8 = unsafe {
         port.read()
     };
-    let key = match scancode {
-        0x02 => Some('1'),
-        0x03 => Some('2'),
-        0x04 => Some('3'),
-        0x05 => Some('4'),
-        0x06 => Some('5'),
-        0x07 => Some('6'),
-        0x08 => Some('7'),
-        0x09 => Some('8'),
-        0x0a => Some('9'),
-        0x0b => Some('0'),
-        _ => None,
-    };
-    if let Some(key) = key{
-        print!("{}",key);
+    if let Ok(Some(keyevent)) = keyboard.add_byte(scancode) { 
+        if let Some(key) = keyboard.process_keyevent(keyevent) { // we can use the key event to further customise on the basis of whether it is a realease of press event 
+            match key {
+                DecodedKey::Unicode(ch) => print!("{ch}"),
+                DecodedKey::RawKey(key) => print!("{:?}",key),
+            }
+        }
     }
-    // print!("{scancode}"); // internally the print function has the logic to stop interrupts during execution
     unsafe {
         PICS.lock().notify_end_of_interrupt(InterruptIndex::KeyBoard as u8);
     }

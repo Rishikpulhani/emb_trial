@@ -22,3 +22,5 @@
 18/07/2025 - finished switching stacks 
 19/07/2025 - finished till creating global descriptor table
 20/07/2025 - finished blog 6
+23/07/2025 - finished till deadlocks 
+24/07/2025 - finished till blog 7
