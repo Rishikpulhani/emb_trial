@@ -1,6 +1,6 @@
 use pc_keyboard::{layouts, DecodedKey, HandleControl, Keyboard, ScancodeSet1};
-use x86_64::{instructions::port, structures::{gdt, idt::{InterruptDescriptorTable, InterruptStackFrame}}};
-use crate::{println,exit_qemu,print};
+use x86_64::{instructions::port, structures::{gdt, idt::{InterruptDescriptorTable, InterruptStackFrame, PageFaultErrorCode}}, registers::control::Cr2};
+use crate::{exit_qemu, hlt_loop, print, println};
 use pic8259::ChainedPics;
 use lazy_static::lazy_static;
 use spin::Mutex;
@@ -20,6 +20,7 @@ lazy_static!{
             idt.double_fault.set_handler_fn(double_fault_handler).set_stack_index(crate::gdt::DOUBLE_FAULT_IST_INDEX);
             // unsafe as need to ensure that the stack assigned is valid
         }
+        idt.page_fault.set_handler_fn(page_fault_handler);
         idt[InterruptIndex::TIMER as u8].set_handler_fn(timer_interrupt_handler);
         idt[InterruptIndex::KeyBoard as u8].set_handler_fn(keyboard_interrupt_handler);
         idt
@@ -44,6 +45,14 @@ pub enum InterruptIndex {
 //     }
 // }
 
+// Exception Handlers
+extern "x86-interrupt" fn page_fault_handler(stack_frame: InterruptStackFrame, error_code: PageFaultErrorCode){
+    println!("EXCEPTION: PAGE FAULT");
+    println!("Accessed Address: {:?}", Cr2::read()); //automatically set by the CPU on a page fault and contains the accessed virtual address that caused the page fault
+    println!("Error Code: {:?}", error_code);
+    println!("{:#?}", stack_frame);
+    hlt_loop(); // if not do this then return and again cause a page fault and repeat it, becuase currently not resolved the page fault
+}
 extern "x86-interrupt" fn breakpoint_handler(stack_frame: InterruptStackFrame){
     println!("EXCEPTION: BREAKPOINT\n{:#?}", stack_frame);
 }
@@ -53,6 +62,8 @@ extern "x86-interrupt" fn double_fault_handler(stack_frame: InterruptStackFrame,
     println!("EXCEPTION: DOUBLE FAULT\n{:#?}", error_code); // 0 by default 
     loop {}
 }
+
+// Hardware Interrupts
 extern "x86-interrupt" fn timer_interrupt_handler(stack_frame: InterruptStackFrame){
     print!(".");
     unsafe {

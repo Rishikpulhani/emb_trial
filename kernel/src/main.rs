@@ -11,6 +11,7 @@ use core::{fmt::Write, panic::PanicInfo};
 use kernel::{hlt_loop, println};
 use kernel::framebuffer::FrameBufferWriter;
 use kernel::init;
+use x86_64::registers::control::Cr3;
 
 //use crate::vga_buffer;
  entry_point!(kernel_main); // The provided entry_point macro will encode the configuration settings into a separate ELF section of the compiled kernel executable., the kernel main is the frst argument and the second is optional and is to be used if we want some other config for our kernel elf. The macro checks the signature of your entry point function and generates a _start entry point symbol for it.
@@ -37,6 +38,19 @@ fn kernel_main(boot_info: &'static mut BootInfo) -> ! { // noneed of extern c as
     //panic!("Some panic message");
     init(); // we create such init functions because these are lazy statics and are initialised at runtime when they are called
     //x86_64::instructions::interrupts::int3();
+    // let ptr = 0xdeadbeaf as *mut u8;
+    // unsafe { *ptr = 42; }
+    let (level_4_page_table, _) = Cr3::read();
+    println!("Level 4 page table at: {:?}", level_4_page_table.start_address());
+    let ptr = 0x10e3000 as *mut u8;
+
+    // read from a code page
+    unsafe { let x = *ptr; }
+    println!("read worked");
+
+    // write to a code page
+    //unsafe { *ptr = 42; }
+    println!("write worked");
     println!("It did not crash!");
     for i in 1..1000 {
         println!("It did not crash!");
