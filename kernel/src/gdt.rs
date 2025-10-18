@@ -13,6 +13,10 @@ use x86_64::VirtAddr;
 
 pub const DOUBLE_FAULT_IST_INDEX: u16 = 0;
 
+// We haven’t implemented memory management yet, so we don’t have a proper way to allocate a new stack. Instead, we use a static mut array as stack storage for now. It is important that it is a static mut and not an immutable static, because otherwise the bootloader will map it to a read-only page. We will replace this with a proper stack allocation in a later post.
+
+// Note that this double fault stack has no guard page that protects against stack overflow. This means that we should not do anything stack-intensive in our double fault handler because a stack overflow might corrupt the memory below the stack.
+
 lazy_static!{
     static ref TSS: TaskStateSegment = {
         let mut tss = TaskStateSegment::new(); // initially all fields are 0
